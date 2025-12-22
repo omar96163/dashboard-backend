@@ -13,21 +13,23 @@ import {
 
 export const bookingRouter = express.Router();
 
-bookingRouter.route("/").get(verify_token, getAllBookings);
+bookingRouter
+  .route("/")
+  .get(verify_token, getAllBookings)
+  .post(
+    verify_token,
+    allowed_to(roles.CLIENT),
+    validation_Booking_Schema(true),
+    createBooking
+  );
 
 bookingRouter
   .route("/:id")
   .patch(
     verify_token,
-    allowed_to(roles.BUYER),
-    validation_Booking_Schema(),
+    allowed_to(roles.CLIENT),
+    validation_Booking_Schema(false),
     updateBooking
   )
-  .post(
-    verify_token,
-    allowed_to(roles.BUYER),
-    validation_Booking_Schema(),
-    createBooking
-  )
   .get(verify_token, getBookingById)
-  .delete(verify_token, allowed_to(roles.BUYER), deleteBooking);
+  .delete(verify_token, allowed_to(roles.CLIENT), deleteBooking);

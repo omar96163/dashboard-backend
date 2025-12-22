@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { roles } from "../config/roles.js";
 import { body } from "express-validator";
+import { roles } from "../config/roles.js";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -21,11 +21,9 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: [roles.SELLER, roles.ADMIN, roles.BUYER],
+      enum: [roles.CLIENT, roles.FREELANCER, roles.AGENT, roles.ADMIN],
       required: true,
-    },
-    token: {
-      type: String,
+      default: roles.CLIENT,
     },
     avatar: {
       type: String,
@@ -39,24 +37,17 @@ export const User_model = mongoose.model("User", UserSchema);
 export const validation_User_Schema = () => {
   return [
     body("name")
-      .notEmpty()
-      .withMessage("name is required")
+      .optional()
       .isLength({ min: 3 })
-      .withMessage("min length is 3 characters"),
-    body("email")
-      .notEmpty()
-      .withMessage("email is required")
-      .isEmail()
-      .withMessage("invalid email"),
+      .withMessage("Name must be at least 3 characters"),
+    body("email").optional().isEmail().withMessage("Invalid email"),
     body("password")
-      .notEmpty()
-      .withMessage("password is required")
+      .optional()
       .isLength({ min: 8 })
-      .withMessage("min length is 8 digits"),
+      .withMessage("Password must be at least 8 characters"),
     body("role")
-      .notEmpty()
-      .withMessage("role is required")
-      .isIn([roles.SELLER, roles.ADMIN, roles.BUYER])
-      .withMessage(`role must be one of ${Object.values(roles)}`),
+      .optional()
+      .isIn(Object.values(roles))
+      .withMessage(`Role must be one of: ${Object.values(roles).join(", ")}`),
   ];
 };

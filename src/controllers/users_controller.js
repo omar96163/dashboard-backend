@@ -8,64 +8,75 @@ export const getAllUsers = async (req, res) => {
     const users = await User_model.find({}, { password: false, __v: false });
     return res.json({ status: "success", data: { users } });
   } catch (err) {
-    return res.status(500).json({ status: "error", error: err.message });
+    return res.status(500).json({ status: "error", message: err.message });
+  }
+};
+
+export const getMyAccount = async (req, res) => {
+  const userId = req.current_user.id;
+  try {
+    const myAccount = await User_model.findById(userId).select(
+      "-password -__v"
+    );
+    if (!myAccount) {
+      return res.status(404).json({
+        status: "failed",
+        message: "This user does not exist",
+      });
+    }
+    return res.status(200).json({ status: "success", data: { myAccount } });
+  } catch (err) {
+    return res.status(500).json({ status: "error", message: err.message });
   }
 };
 
 export const register = async (req, res) => {
   const err = validationResult(req);
   if (!err.isEmpty()) {
-    return res.status(400).json({ status: "Failed", error: err.array() });
+    return res.status(400).json({ status: "failed", message: err.array() });
   }
   const olduser = await User_model.findOne({ email: req.body.email });
   if (olduser) {
     return res
       .status(400)
-      .json({ status: "Failed", error: "email already exists" });
+      .json({ status: "failed", message: "email already exists" });
   }
   try {
     const hashedpassword = await bcrypt.hash(req.body.password, 10);
     req.body.password = hashedpassword;
     const user = new User_model(req.body);
     const token = generate_token(user.email, user._id, user.role);
-    user.token = token;
     user.avatar = req.file?.filename || "default";
     await user.save();
-    return res
-      .status(201)
-      .json({ status: "success", data: { user }, msg: "sign up successfully" });
+    const newuser = await User_model.findById(user._id).select(
+      "-password -__v"
+    );
+    return res.status(201).json({
+      status: "success",
+      message: "sign up successfully",
+      token: token,
+      data: { newuser },
+    });
   } catch (err) {
-    return res.status(500).json({ status: "error", error: err.message });
+    return res.status(500).json({ status: "error", message: err.message });
   }
 };
 
 export const login = async (req, res) => {
   const user_email = req.body.email;
   const user_password = req.body.password;
-  if (!user_email & !user_password) {
+  if (!user_email || !user_password) {
     return res.status(400).json({
-      status: "Failed",
-      error: "email & password are required",
-    });
-  }
-  if (!user_email) {
-    return res.status(400).json({
-      status: "Failed",
-      error: "email is required",
-    });
-  }
-  if (!user_password) {
-    return res.status(400).json({
-      status: "Failed",
-      error: "password is required",
+      status: "failed",
+      message: "email & password are required",
     });
   } else {
     try {
       const matched_user = await User_model.findOne({ email: user_email });
       if (!matched_user) {
         return res.status(404).json({
-          status: "Failed",
-          error: "this email not exist",
+          status: "failed",
+          message: "this email not exist",
         });
       } else {
         const matched_password = await bcrypt.compare(
@@ -74,8 +85,8 @@ export const login = async (req, res) => {
         );
         if (!matched_password) {
           return res.status(401).json({
-            status: "Failed",
-            error: "this password is wrong",
+            status: "failed",
+            message: "this password is wrong",
           });
         } else {
           const token = generate_token(
@@ -83,16 +94,19 @@ export const login = async (req, res) => {
             matched_user._id,
             matched_user.role
           );
-          matched_user.token = token;
+          const user = await User_model.findById(matched_user._id).select(
+            "-password -__v"
+          );
           return res.json({
             status: "success",
-            msg: "logged in successfully",
-            user: matched_user,
+            message: "logged in successfully",
+            token: token,
+            data: { user },
           });
         }
       }
     } catch (err) {
-      return res.status(500).json({ status: "error", error: err.message });
+      return res.status(500).json({ status: "error", message: err.message });
     }
   }
 };
@@ -103,49 +117,52 @@ export const deleteUsers = async (req, res) => {
     if (!deleteduser) {
       return res
         .status(404)
-        .json({ status: "Failed", error: "user not found" });
+        .json({ status: "failed", message: "user not found" });
     }
     return res.status(200).json({
       status: "success",
-      data: `${deleteduser.email} , deleted`,
+      message: `${deleteduser.email} , deleted`,
     });
   } catch (err) {
-    return res.status(500).json({ status: "error", error: err.message });
+    return res.status(500).json({ status: "error", message: err.message });
   }
 };
 
 export const updateUser = async (req, res) => {
   const user = await User_model.findOne({ _id: req.params.id });
   if (!user) {
-    return res.status(404).json({ status: "Failed", error: "user not found" });
+    return res
+      .status(404)
+      .json({ status: "failed", message: "user not found" });
   }
   const err = validationResult(req);
   if (!err.isEmpty()) {
-    return res.status(400).json({ status: "Failed", error: err.array() });
+    return res.status(400).json({ status: "failed", message: err.array() });
   }
   const matcheduser = await User_model.findOne({ email: req.body.email });
   if (matcheduser && matcheduser._id.toString() !== req.params.id) {
     return res
       .status(400)
-      .json({ status: "Failed", error: "email already exists" });
+      .json({ status: "failed", message: "email already exists" });
   }
 
   try {
-    const hashedpassword = await bcrypt.hash(req.body.password, 10);
-    req.body.password = hashedpassword;
+    if (req.body.password) {
+      req.body.password = await bcrypt.hash(req.body.password, 10);
+    }
     req.body.avatar = req.file?.filename || "default";
     const updateduser = await User_model.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
-    );
+      { new: true, runValidators: true }
+    ).select("-password -__v");
     if (!updateduser) {
       return res
         .status(404)
-        .json({ status: "Failed", error: "user not found" });
+        .json({ status: "failed", message: "user not found" });
     }
     return res.status(200).json({ status: "success", data: { updateduser } });
   } catch (err) {
-    return res.status(500).json({ status: "error", error: err.message });
+    return res.status(500).json({ status: "error", message: err.message });
   }
 };

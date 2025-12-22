@@ -7,30 +7,45 @@ export const generate_token = (email, id, role) => {
 };
 
 export const verify_token = (req, res, next) => {
-  const Bearer_token = req.headers.authorization;
-  const token = Bearer_token.split(" ")[1];
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      status: "Failed",
+      error: "Token is required. Please log in.",
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      status: "Failed",
+      error: "Invalid token format",
+    });
+  }
+
   try {
-    if (!token || token == undefined || token == null) {
-      return res
-        .status(401)
-        .json({ status: "Failed", error: "token is required , login to go" });
-    }
     const current_user = JsonWebToken.verify(token, process.env.JWT_SECRET);
     req.current_user = current_user;
     next();
   } catch (err) {
-    if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
+    if (err.name === "TokenExpiredError") {
       return res.status(401).json({
         status: "Failed",
-        error:
-          err.name === "TokenExpiredError"
-            ? "Token has expired. Please login again"
-            : "Invalid token",
+        error: "Token has expired. Please log in again.",
+      });
+    } else if (err.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        status: "Failed",
+        error: "Invalid token. Please log in.",
+      });
+    } else {
+      console.error("JWT verification error:", err);
+      return res.status(500).json({
+        status: "Error",
+        error: "Internal server error",
       });
     }
-    return res.status(500).json({
-      status: "Error",
-      error: err.message,
-    });
   }
 };

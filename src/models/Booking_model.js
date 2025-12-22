@@ -41,16 +41,14 @@ const bookingSchema = new mongoose.Schema(
 
 export const Booking_model = mongoose.model("Booking", bookingSchema);
 
-export const validation_Booking_Schema = () => {
-  return [
+export const validation_Booking_Schema = (isCreating = false) => {
+  const validations = [
     body("bookingPrice")
-      .notEmpty()
-      .withMessage("Booking price is required.")
+      .optional()
       .isFloat({ min: 50 })
       .withMessage("Price must be at least 50$."),
     body("bookingDate")
-      .notEmpty()
-      .withMessage("Booking date is required.")
+      .optional()
       .isISO8601()
       .withMessage("Invalid date format.")
       .custom((value) => {
@@ -64,4 +62,16 @@ export const validation_Booking_Schema = () => {
       .isLength({ max: 500 })
       .withMessage("Notes cannot exceed 500 characters."),
   ];
+
+  if (isCreating) {
+    validations.push(
+      body("serviceId")
+        .notEmpty()
+        .withMessage("Service ID is required")
+        .isMongoId()
+        .withMessage("Invalid service ID")
+    );
+  }
+
+  return validations;
 };

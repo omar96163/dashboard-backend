@@ -18,7 +18,7 @@ serviceRouter
   .get(verify_token, getAllServices)
   .post(
     verify_token,
-    allowed_to(roles.SELLER),
+    allowed_to(roles.FREELANCER),
     validation_Service_Schema(),
     createService
   );
@@ -28,8 +28,8 @@ serviceRouter
   .get(verify_token, getServiceById)
   .patch(
     verify_token,
-    allowed_to(roles.SELLER),
+    allowed_to(roles.FREELANCER),
     validation_Service_Schema(),
     updateService
   )
-  .delete(verify_token, allowed_to(roles.SELLER), deleteService);
+  .delete(verify_token, allowed_to(roles.FREELANCER), deleteService);

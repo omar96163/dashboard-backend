@@ -1,17 +1,52 @@
+import { roles } from "../config/roles.js";
+
 export const listening = () => {
   return console.log("listening on port", process.env.PORT || 2000);
 };
 
 export const allowed_to = (...roles) => {
   return (req, res, next) => {
+    if (!req.current_user) {
+      return res.status(401).json({
+        status: "Unauthorized",
+        error: "Authentication required",
+      });
+    }
+
     const current_user_role = req.current_user.role;
     if (!roles.includes(current_user_role)) {
-      return res
-        .status(403)
-        .json({ status: "Failed", error: "you are not allowed" });
+      return res.status(403).json({
+        status: "Forbidden",
+        error: "You don't have permission to access this resource",
+      });
     }
     next();
   };
+};
+
+export const canManageOwnOrAll = (req, res, next) => {
+  const { id } = req.params;
+  const { current_user } = req;
+
+  if (!current_user) {
+    return res.status(401).json({
+      status: "Unauthorized",
+      error: "Authentication required",
+    });
+  }
+
+  if (current_user.role === roles.ADMIN) {
+    return next();
+  }
+
+  if (current_user.id === id) {
+    return next();
+  }
+
+  return res.status(403).json({
+    status: "Forbidden",
+    error: "You can only manage your own account",
+  });
 };
 
 export const homeRouter = (req, res) => {

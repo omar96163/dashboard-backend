@@ -1,10 +1,11 @@
+import { roles } from "../config/roles.js";
 import { validationResult } from "express-validator";
 import { Service_model } from "../models/Service_model.js";
 
 export const createService = async (req, res) => {
   const err = validationResult(req);
   if (!err.isEmpty()) {
-    return res.status(400).json({ status: "Failed", message: err.array() });
+    return res.status(400).json({ status: "failed", message: err.array() });
   }
 
   try {
@@ -21,13 +22,13 @@ export const createService = async (req, res) => {
     await service.save();
 
     res.status(201).json({
-      status: "Success",
+      status: "success",
       message: "Service created successfully",
       data: { service },
     });
   } catch (error) {
     res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `Error creating service >> ${error.message}`,
     });
   }
@@ -35,35 +36,26 @@ export const createService = async (req, res) => {
 
 export const getAllServices = async (req, res) => {
   try {
-    const sellerId = req.current_user.id;
-    const role = req.current_user.role;
+    const { role, id: userId } = req.current_user;
+    let services;
 
-    if (role !== "seller") {
-      const services = await Service_model.find({});
-
-      if (!services.length) {
-        return res
-          .status(404)
-          .json({
-            status: "Failed",
-            message: "No services found, please create one",
-          });
-      }
-
-      return res.status(200).json({ status: "Success", data: { services } });
+    if (role === roles.FREELANCER) {
+      services = await Service_model.find({ sellerId: userId });
+    } else {
+      services = await Service_model.find({});
     }
 
-    const services = await Service_model.find({ sellerId });
     if (!services.length) {
-      return res
-        .status(404)
-        .json({ status: "Failed", message: "No services found" });
+      return res.status(404).json({
+        status: "failed",
+        message: "No services found",
+      });
     }
 
-    return res.status(200).json({ status: "Success", data: { services } });
+    res.status(200).json({ status: "success", data: { services } });
   } catch (err) {
-    return res.status(500).json({
-      status: "Error",
+    res.status(500).json({
+      status: "error",
       message: `Error fetching services >> ${err.message}`,
     });
   }
@@ -79,26 +71,30 @@ export const getServiceById = async (req, res) => {
     if (!service) {
       return res
         .status(404)
-        .json({ status: "Failed", message: "Service not found" });
+        .json({ status: "failed", message: "Service not found" });
     }
 
-    if (role === "seller" && service.sellerId.toString() !== sellerId) {
+    if (role === roles.FREELANCER && service.sellerId.toString() !== sellerId) {
       return res.status(403).json({
-        status: "Failed",
+        status: "failed",
         message: "You are not authorized to view this service",
       });
     }
 
-    return res.status(200).json({ status: "Success", data: { service } });
+    return res.status(200).json({ status: "success", data: { service } });
   } catch (err) {
     return res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `Error fetching service >> ${err.message}`,
     });
   }
 };
 
 export const updateService = async (req, res) => {
+  const err = validationResult(req);
+  if (!err.isEmpty()) {
+    return res.status(400).json({ status: "failed", message: err.array() });
+  }
   try {
     const serviceId = req.params.id;
     const sellerId = req.current_user.id;
@@ -108,32 +104,33 @@ export const updateService = async (req, res) => {
     if (!service)
       return res
         .status(404)
-        .json({ status: "Failed", message: "Service not found" });
+        .json({ status: "failed", message: "Service not found" });
 
     if (service.sellerId.toString() !== sellerId) {
       return res.status(403).json({
-        status: "Failed",
+        status: "failed",
         message: "You are not authorized to update this service",
       });
     }
 
-    const { title, description, duration, price } = req.body;
+    const { title, description, duration, price, isActive } = req.body;
 
     service.title = title || service.title;
     service.description = description || service.description;
     service.duration = duration || service.duration;
     service.price = price || service.price;
+    service.isActive = isActive || service.isActive;
 
     await service.save();
 
     res.status(200).json({
-      status: "Success",
+      status: "success",
       message: "Service updated successfully",
       data: { service },
     });
   } catch (error) {
     res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `Error updating service >> ${error.message}`,
     });
   }
@@ -149,11 +146,11 @@ export const deleteService = async (req, res) => {
     if (!service)
       return res
         .status(404)
-        .json({ status: "Failed", message: "Service not found" });
+        .json({ status: "failed", message: "Service not found" });
 
     if (service.sellerId.toString() !== sellerId) {
       return res.status(403).json({
-        status: "Failed",
+        status: "failed",
         message: "You are not authorized to delete this service",
       });
     }
@@ -161,12 +158,12 @@ export const deleteService = async (req, res) => {
     await service.deleteOne();
 
     res.json({
-      status: "Success",
-      message: `${service.title} service deleted successfully`,
+      status: "success",
+      message: `${service.title} , service deleted successfully`,
     });
   } catch (error) {
     res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `Error deleting service >> ${error.message}`,
     });
   }

@@ -1,3 +1,4 @@
+import { roles } from "../config/roles.js";
 import { validationResult } from "express-validator";
 import { Booking_model } from "../models/Booking_model.js";
 import { Service_model } from "../models/Service_model.js";
@@ -5,19 +6,18 @@ import { Service_model } from "../models/Service_model.js";
 export const createBooking = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ status: "Failed", errors: errors.array() });
+    return res.status(400).json({ status: "failed", message: errors.array() });
   }
 
   try {
     const buyerId = req.current_user.id;
-    const serviceId = req.params.id;
-    const { bookingPrice, bookingDate, notes } = req.body;
+    const { serviceId, bookingPrice, bookingDate, notes } = req.body;
 
     const service = await Service_model.findById(serviceId);
     if (!service || !service.isActive) {
       return res
         .status(404)
-        .json({ status: "Failed", message: "Service not found or inactive." });
+        .json({ status: "failed", message: "Service not found or inactive." });
     }
 
     const existing = await Booking_model.findOne({
@@ -26,7 +26,7 @@ export const createBooking = async (req, res) => {
     });
     if (existing) {
       return res.status(400).json({
-        status: "Failed",
+        status: "failed",
         message: "Service already booked for that date.",
       });
     }
@@ -49,7 +49,7 @@ export const createBooking = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `creating booking failed >> ${err.message}`,
     });
   }
@@ -60,37 +60,37 @@ export const getAllBookings = async (req, res) => {
     const userId = req.current_user.id;
     const role = req.current_user.role;
 
-    if (role === "admin") {
+    if (role === roles.ADMIN) {
       const bookings = await Booking_model.find({});
       if (!bookings.length) {
         return res
           .status(404)
-          .json({ status: "Failed", message: "No bookings found" });
+          .json({ status: "failed", message: "No bookings found" });
       }
-      return res.status(200).json({ status: "Success", data: { bookings } });
+      return res.status(200).json({ status: "success", data: { bookings } });
     }
-    if (role === "seller") {
+    if (role === roles.FREELANCER) {
       const bookings = await Booking_model.find({ sellerId: userId });
       if (!bookings.length) {
         return res
           .status(404)
-          .json({ status: "Failed", message: "No bookings found" });
+          .json({ status: "failed", message: "No bookings found" });
       }
-      return res.status(200).json({ status: "Success", data: { bookings } });
+      return res.status(200).json({ status: "success", data: { bookings } });
     }
 
-    if (role === "buyer") {
+    if (role === roles.CLIENT) {
       const bookings = await Booking_model.find({ buyerId: userId });
       if (!bookings.length) {
         return res
           .status(404)
-          .json({ status: "Failed", message: "No bookings found" });
+          .json({ status: "failed", message: "No bookings found" });
       }
-      return res.status(200).json({ status: "Success", data: { bookings } });
+      return res.status(200).json({ status: "success", data: { bookings } });
     }
   } catch (err) {
     res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `get all bookings failed >> ${err.message}`,
     });
   }
@@ -106,24 +106,24 @@ export const getBookingById = async (req, res) => {
     if (!booking) {
       return res
         .status(404)
-        .json({ status: "Failed", message: "No booking found" });
+        .json({ status: "failed", message: "No booking found" });
     }
 
     if (
-      (role === "seller" && booking.sellerId.toString() !== userId) ||
-      (role === "buyer" && booking.buyerId.toString() !== userId)
+      (role === roles.FREELANCER && booking.sellerId.toString() !== userId) ||
+      (role === roles.CLIENT && booking.buyerId.toString() !== userId)
     ) {
-      return res.status(404).json({
-        status: "Failed",
+      return res.status(403).json({
+        status: "failed",
         message:
-          "you are not authorized to view this booking, you are not the seller or the buyer",
+          "you are not authorized to view this booking, you are not the freelancer or the client",
       });
     }
 
-    res.status(200).json({ status: "Success", data: { booking } });
+    res.status(200).json({ status: "success", data: { booking } });
   } catch (err) {
     res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `get BookingById failed >> ${err.message}`,
     });
   }
@@ -132,7 +132,7 @@ export const getBookingById = async (req, res) => {
 export const updateBooking = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ status: "Failed", errors: errors.array() });
+    return res.status(400).json({ status: "failed", message: errors.array() });
   }
 
   try {
@@ -143,11 +143,11 @@ export const updateBooking = async (req, res) => {
     if (!booking)
       return res
         .status(404)
-        .json({ status: "Failed", message: "Booking not found" });
+        .json({ status: "failed", message: "Booking not found" });
 
     if (booking.buyerId.toString() !== userId) {
       return res.status(403).json({
-        status: "Failed",
+        status: "failed",
         message:
           "You are not authorized to update this booking, you are not the buyer",
       });
@@ -159,10 +159,10 @@ export const updateBooking = async (req, res) => {
     booking.notes = notes || booking.notes;
     await booking.save();
 
-    res.status(200).json({ status: "Success", data: { booking } });
+    res.status(200).json({ status: "success", data: { booking } });
   } catch (err) {
     res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `updating booking failed >> ${err.message}`,
     });
   }
@@ -177,21 +177,21 @@ export const deleteBooking = async (req, res) => {
     if (!booking) {
       return res
         .status(404)
-        .json({ status: "Failed", message: "Booking not found" });
+        .json({ status: "failed", message: "Booking not found" });
     }
     if (booking.buyerId.toString() !== userId) {
       return res.status(403).json({
-        status: "Failed",
+        status: "failed",
         message:
           "You are not authorized to delete this booking, you are not the buyer",
       });
     }
 
     await Booking_model.findByIdAndDelete(bookingId);
-    res.json({ status: "Success", message: "Booking deleted successfully" });
+    res.json({ status: "success", message: "Booking deleted successfully" });
   } catch (err) {
     res.status(500).json({
-      status: "Error",
+      status: "error",
       message: `deleting booking failed >> ${err.message}`,
     });
   }
