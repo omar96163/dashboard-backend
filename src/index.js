@@ -59,8 +59,8 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-//app.use("/api/users/login", authLimiter);
-//app.use("/api/users/register", authLimiter);
+app.use("/api/users/login");
+app.use("/api/users/register");
 
 app.use("/uploads", express.static(uploadsDir));
 app.use("/api/users", usersRouter);
