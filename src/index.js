@@ -70,4 +70,4 @@ app.use("/", homeRouter);
 
 connectDB();
 
-app.listen(process.env.PORT || 2000, listening);
+app.listen(process.env.PORT || 8000, listening);

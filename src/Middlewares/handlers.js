@@ -1,7 +1,7 @@
 import { roles } from "../config/roles.js";
 
 export const listening = () => {
-  return console.log("listening on port", process.env.PORT || 2000);
+  return console.log("listening on port", process.env.PORT || 8000);
 };
 
 export const allowed_to = (...roles) => {
