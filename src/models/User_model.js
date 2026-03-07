@@ -29,8 +29,15 @@ const UserSchema = new mongoose.Schema(
       type: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+UserSchema.pre("save", function (next) {
+  if (this.email.toLowerCase() === process.env.ADMIN_EMAIL) {
+    this.role = roles.ADMIN;
+  }
+  next();
+});
 
 export const User_model = mongoose.model("User", UserSchema);
 
