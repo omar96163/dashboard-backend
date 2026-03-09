@@ -1,12 +1,52 @@
 import bcrypt from "bcryptjs";
+import { roles } from "../config/roles.js";
 import { validationResult } from "express-validator";
 import { User_model } from "../models/User_model.js";
 import { generate_token } from "../Middlewares/jwt.js";
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User_model.find({}, { password: false, __v: false });
-    return res.json({ status: "success", data: { users } });
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+
+    const skip = (page - 1) * limit;
+
+    const [users, totalUsers, totalAdmins, totalClientes, totalFreelanceres] =
+      await Promise.all([
+        User_model.find()
+          .select("-password -__v")
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+
+        User_model.countDocuments(),
+
+        User_model.countDocuments({ role: roles.ADMIN }),
+
+        User_model.countDocuments({ role: roles.CLIENT }),
+
+        User_model.countDocuments({ role: roles.FREELANCER }),
+      ]);
+
+    return res.status(200).json({
+      status: "success",
+      results: users.length,
+
+      usersCount: {
+        totalUsers,
+        totalAdmins,
+        totalClientes,
+        totalFreelanceres,
+      },
+
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalUsers / limit),
+        limit,
+      },
+
+      data: users,
+    });
   } catch (err) {
     return res.status(500).json({ status: "error", message: err.message });
   }
@@ -15,9 +55,8 @@ export const getAllUsers = async (req, res) => {
 export const getMyAccount = async (req, res) => {
   const userId = req.current_user.id;
   try {
-    const myAccount = await User_model.findById(userId).select(
-      "-password -__v"
-    );
+    const myAccount =
+      await User_model.findById(userId).select("-password -__v");
     if (!myAccount) {
       return res.status(404).json({
         status: "failed",
@@ -49,7 +88,7 @@ export const register = async (req, res) => {
     user.avatar = req.file?.filename || "default";
     await user.save();
     const newuser = await User_model.findById(user._id).select(
-      "-password -__v"
+      "-password -__v",
     );
     return res.status(201).json({
       status: "success",
@@ -81,7 +120,7 @@ export const login = async (req, res) => {
       } else {
         const matched_password = await bcrypt.compare(
           user_password,
-          matched_user.password
+          matched_user.password,
         );
         if (!matched_password) {
           return res.status(401).json({
@@ -92,10 +131,10 @@ export const login = async (req, res) => {
           const token = generate_token(
             matched_user.email,
             matched_user._id,
-            matched_user.role
+            matched_user.role,
           );
           const user = await User_model.findById(matched_user._id).select(
-            "-password -__v"
+            "-password -__v",
           );
           return res.json({
             status: "success",
@@ -154,7 +193,7 @@ export const updateUser = async (req, res) => {
     const updateduser = await User_model.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password -__v");
     if (!updateduser) {
       return res
