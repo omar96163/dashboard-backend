@@ -53,7 +53,7 @@ export const register = async (req, res) => {
     );
     return res.status(201).json({
       status: "success",
-      message: "تم التسجيل بنجاح , سعيدون بثقتك",
+      message: "تم التسجيل بنجاح , سعيدون بثقتك في منصتنا",
       token: token,
       data: { newuser },
     });
@@ -99,7 +99,7 @@ export const login = async (req, res) => {
           );
           return res.json({
             status: "success",
-            message: "تم تسجيل الدخول بنجاح , مرحبا بك",
+            message: "تم تسجيل الدخول بنجاح , مرحبا بك مجدداً",
             token: token,
             data: { user },
           });
