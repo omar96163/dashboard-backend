@@ -39,7 +39,7 @@ export const register = async (req, res) => {
   if (olduser) {
     return res
       .status(400)
-      .json({ status: "failed", message: "email already exists" });
+      .json({ status: "failed", message: "البريد الإلكتروني موجود بالفعل" });
   }
   try {
     const hashedpassword = await bcrypt.hash(req.body.password, 10);
@@ -53,7 +53,7 @@ export const register = async (req, res) => {
     );
     return res.status(201).json({
       status: "success",
-      message: "sign up successfully",
+      message: "تم التسجيل بنجاح , سعيدون بثقتك",
       token: token,
       data: { newuser },
     });
@@ -68,7 +68,7 @@ export const login = async (req, res) => {
   if (!user_email || !user_password) {
     return res.status(400).json({
       status: "failed",
-      message: "email & password are required",
+      message: "لابد من إدخال البريد الإلكتروني وكلمة المرور",
     });
   } else {
     try {
@@ -76,7 +76,7 @@ export const login = async (req, res) => {
       if (!matched_user) {
         return res.status(404).json({
           status: "failed",
-          message: "this email not exist",
+          message: "البريد الإلكتروني غير موجود",
         });
       } else {
         const matched_password = await bcrypt.compare(
@@ -86,7 +86,7 @@ export const login = async (req, res) => {
         if (!matched_password) {
           return res.status(401).json({
             status: "failed",
-            message: "this password is wrong",
+            message: "كلمة المرور غير  صحيحه",
           });
         } else {
           const token = generate_token(
@@ -99,7 +99,7 @@ export const login = async (req, res) => {
           );
           return res.json({
             status: "success",
-            message: "logged in successfully",
+            message: "تم تسجيل الدخول بنجاح , مرحبا بك",
             token: token,
             data: { user },
           });
