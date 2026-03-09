@@ -45,7 +45,7 @@ export const getAllUsers = async (req, res) => {
         limit,
       },
 
-      data: { users },
+      data: users,
     });
   } catch (err) {
     return res.status(500).json({ status: "error", message: err.message });
