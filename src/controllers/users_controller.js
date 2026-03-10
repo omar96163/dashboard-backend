@@ -84,9 +84,9 @@ export const register = async (req, res) => {
     const hashedpassword = await bcrypt.hash(req.body.password, 10);
     req.body.password = hashedpassword;
     const user = new User_model(req.body);
-    const token = generate_token(user.email, user._id, user.role);
     user.avatar = req.file?.filename || "default";
     await user.save();
+    const token = generate_token(user.email, user._id, user.role);
     const newuser = await User_model.findById(user._id).select(
       "-password -__v",
     );
