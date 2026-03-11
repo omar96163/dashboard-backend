@@ -50,7 +50,7 @@ app.use(morgan("combined"));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 150,
   message: {
     status: "Too Many Requests",
     error: "Too many login attempts, please try again later.",
