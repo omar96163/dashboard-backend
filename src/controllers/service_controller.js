@@ -49,10 +49,10 @@ export const getAllServices = async (req, res) => {
       services = await Service_model.find({ sellerId: userId })
         .skip(skip)
         .limit(limit);
-      totalServices = User_model.countDocuments();
+      totalServices = Service_model.countDocuments();
     } else {
       services = await Service_model.find({}).skip(skip).limit(limit);
-      totalServices = User_model.countDocuments();
+      totalServices = Service_model.countDocuments();
     }
 
     if (!services.length) {
