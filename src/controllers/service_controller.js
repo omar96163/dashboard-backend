@@ -37,12 +37,22 @@ export const createService = async (req, res) => {
 export const getAllServices = async (req, res) => {
   try {
     const { role, id: userId } = req.current_user;
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+
     let services;
+    let totalServices;
+
+    const skip = (page - 1) * limit;
 
     if (role === roles.FREELANCER) {
-      services = await Service_model.find({ sellerId: userId });
+      services = await Service_model.find({ sellerId: userId })
+        .skip(skip)
+        .limit(limit);
+      totalServices = User_model.countDocuments();
     } else {
-      services = await Service_model.find({});
+      services = await Service_model.find({}).skip(skip).limit(limit);
+      totalServices = User_model.countDocuments();
     }
 
     if (!services.length) {
@@ -52,7 +62,18 @@ export const getAllServices = async (req, res) => {
       });
     }
 
-    res.status(200).json({ status: "success", data: { services } });
+    return res.status(200).json({
+      status: "success",
+      results: services.length,
+
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalServices / limit),
+        limit,
+      },
+
+      data: services,
+    });
   } catch (err) {
     res.status(500).json({
       status: "error",
