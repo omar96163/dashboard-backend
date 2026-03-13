@@ -9,7 +9,7 @@ export const allowed_to = (...roles) => {
     if (!req.current_user) {
       return res.status(401).json({
         status: "Unauthorized",
-        error: "Authentication required",
+        error: "يلزم تسجيل الدخول للوصول إلى هذه الصفحة",
       });
     }
 
@@ -17,7 +17,7 @@ export const allowed_to = (...roles) => {
     if (!roles.includes(current_user_role)) {
       return res.status(403).json({
         status: "Forbidden",
-        error: "You don't have permission to access this resource",
+        error: "عذرًا ,  ليس لديك صلاحية للوصول إلى هذه الصفحة",
       });
     }
     next();
@@ -31,7 +31,7 @@ export const canManageOwnOrAll = (req, res, next) => {
   if (!current_user) {
     return res.status(401).json({
       status: "Unauthorized",
-      error: "Authentication required",
+      error: "يلزم تسجيل الدخول للوصول إلى هذه الصفحة",
     });
   }
 
@@ -45,7 +45,7 @@ export const canManageOwnOrAll = (req, res, next) => {
 
   return res.status(403).json({
     status: "Forbidden",
-    error: "You can only manage your own account",
+    error: "يمكنك إدارة حسابك الشخصي فقط",
   });
 };
 

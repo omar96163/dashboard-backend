@@ -2,7 +2,7 @@ import JsonWebToken from "jsonwebtoken";
 
 export const generate_token = (email, id, role) => {
   return JsonWebToken.sign({ email, id, role }, process.env.JWT_SECRET, {
-    expiresIn: "1440m",
+    expiresIn: "7d",
   });
 };
 
@@ -12,7 +12,8 @@ export const verify_token = (req, res, next) => {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
       status: "Failed",
-      error: "Token is required. Please log in.",
+      error:
+        "انتهت صلاحية الجلسة أو رمز المصادقة غير موجود , يرجى تسجيل الدخول مرة أخرى",
     });
   }
 
@@ -21,7 +22,7 @@ export const verify_token = (req, res, next) => {
   if (!token) {
     return res.status(401).json({
       status: "Failed",
-      error: "Invalid token format",
+      error: "تنسيق رمز المصادقة غير صالح",
     });
   }
 
@@ -33,18 +34,18 @@ export const verify_token = (req, res, next) => {
     if (err.name === "TokenExpiredError") {
       return res.status(401).json({
         status: "Failed",
-        error: "Token has expired. Please log in again.",
+        error: "انتهت صلاحية الجلسة , يرجى تسجيل الدخول مرة أخرى",
       });
     } else if (err.name === "JsonWebTokenError") {
       return res.status(401).json({
         status: "Failed",
-        error: "Invalid token. Please log in.",
+        error: "رمز المصادقة غير صحيح , يرجى تسجيل الدخول مرة أخرى",
       });
     } else {
       console.error("JWT verification error:", err);
       return res.status(500).json({
         status: "Error",
-        error: "Internal server error",
+        error: "حدث خطأ غير متوقع في الخادم , يرجى المحاولة لاحقًا",
       });
     }
   }
