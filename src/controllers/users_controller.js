@@ -28,13 +28,6 @@ export const getAllUsers = async (req, res) => {
         User_model.countDocuments({ role: roles.FREELANCER }),
       ]);
 
-    if (!users.length) {
-      return res.status(404).json({
-        status: "failed",
-        message: "No users found",
-      });
-    }
-
     return res.status(200).json({
       status: "success",
       results: users.length,

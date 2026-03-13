@@ -55,13 +55,6 @@ export const getAllServices = async (req, res) => {
       totalServices = Service_model.countDocuments();
     }
 
-    if (!services.length) {
-      return res.status(404).json({
-        status: "failed",
-        message: "No services found",
-      });
-    }
-
     return res.status(200).json({
       status: "success",
       results: services.length,
