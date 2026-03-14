@@ -38,7 +38,7 @@ export const getAllServices = async (req, res) => {
   try {
     const { role, id: userId } = req.current_user;
     const page = Math.max(parseInt(req.query.page) || 1, 1);
-    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 9, 1);
     const skip = (page - 1) * limit;
 
     const filter = role === roles.FREELANCER ? { sellerId: userId } : {};
@@ -51,7 +51,7 @@ export const getAllServices = async (req, res) => {
     return res.status(200).json({
       status: "success",
       results: services.length,
-      
+
       totalServices,
 
       pagination: {
