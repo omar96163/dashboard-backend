@@ -45,13 +45,13 @@ export const getAllServices = async (req, res) => {
 
     const [services, totalServices] = await Promise.all([
       Service_model.find(filter).skip(skip).limit(limit).lean(),
-
       Service_model.countDocuments(filter),
     ]);
 
     return res.status(200).json({
       status: "success",
       results: services.length,
+      
       totalServices,
 
       pagination: {
