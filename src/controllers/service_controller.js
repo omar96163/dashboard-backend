@@ -39,27 +39,20 @@ export const getAllServices = async (req, res) => {
     const { role, id: userId } = req.current_user;
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.max(parseInt(req.query.limit) || 10, 1);
-
-    let services;
-    let totalServices;
-
     const skip = (page - 1) * limit;
 
-    if (role === roles.FREELANCER) {
-      services = await Service_model.find({ sellerId: userId })
-        .skip(skip)
-        .limit(limit);
-      totalServices = Service_model.countDocuments();
-    } else {
-      services = await Service_model.find({}).skip(skip).limit(limit);
-      totalServices = Service_model.countDocuments();
-    }
+    const filter = role === roles.FREELANCER ? { sellerId: userId } : {};
+
+    const [services, totalServices] = await Promise.all([
+      Service_model.find(filter).skip(skip).limit(limit).lean(),
+
+      Service_model.countDocuments(filter),
+    ]);
 
     return res.status(200).json({
       status: "success",
       results: services.length,
-      
-      totalServices: totalServices,
+      totalServices,
 
       pagination: {
         currentPage: page,
