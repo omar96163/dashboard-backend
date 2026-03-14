@@ -58,6 +58,8 @@ export const getAllServices = async (req, res) => {
     return res.status(200).json({
       status: "success",
       results: services.length,
+      
+      totalServices: totalServices,
 
       pagination: {
         currentPage: page,
