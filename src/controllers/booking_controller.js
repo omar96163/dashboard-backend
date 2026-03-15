@@ -178,18 +178,18 @@ export const deleteBooking = async (req, res) => {
     if (!booking) {
       return res
         .status(404)
-        .json({ status: "failed", message: "Booking not found" });
+        .json({ status: "failed", message: "هذا الحجز غير موجود" });
     }
     if (booking.buyerId.toString() !== userId) {
       return res.status(403).json({
         status: "failed",
         message:
-          "You are not authorized to delete this booking, you are not the buyer",
+          "غير مسموح لك بحذف هذا الحجز",
       });
     }
 
     await Booking_model.findByIdAndDelete(bookingId);
-    res.json({ status: "success", message: "Booking deleted successfully" });
+    res.json({ status: "success", message: "تم حذف الحجز بنجاح" });
   } catch (err) {
     res.status(500).json({
       status: "error",

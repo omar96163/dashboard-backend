@@ -155,12 +155,12 @@ export const deleteService = async (req, res) => {
     if (!service)
       return res
         .status(404)
-        .json({ status: "failed", message: "Service not found" });
+        .json({ status: "failed", message: "هذة الخدمة غير موجودة" });
 
     if (service.sellerId.toString() !== sellerId) {
       return res.status(403).json({
         status: "failed",
-        message: "You are not authorized to delete this service",
+        message: "غير مسموح لك بحذف هذة الخدمة",
       });
     }
 
@@ -168,7 +168,7 @@ export const deleteService = async (req, res) => {
 
     res.json({
       status: "success",
-      message: `${service.title} , service deleted successfully`,
+      message: `تم حذف الخدمة " ${service.title} " بنجاح`,
     });
   } catch (error) {
     res.status(500).json({
