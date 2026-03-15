@@ -59,35 +59,36 @@ export const getAllBookings = async (req, res) => {
   try {
     const userId = req.current_user.id;
     const role = req.current_user.role;
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 9, 1);
+    const skip = (page - 1) * limit;
 
-    if (role === roles.ADMIN) {
-      const bookings = await Booking_model.find({});
-      if (!bookings.length) {
-        return res
-          .status(404)
-          .json({ status: "failed", message: "No bookings found" });
-      }
-      return res.status(200).json({ status: "success", data: { bookings } });
-    }
-    if (role === roles.FREELANCER) {
-      const bookings = await Booking_model.find({ sellerId: userId });
-      if (!bookings.length) {
-        return res
-          .status(404)
-          .json({ status: "failed", message: "No bookings found" });
-      }
-      return res.status(200).json({ status: "success", data: { bookings } });
-    }
+    const filter =
+      role === roles.FREELANCER
+        ? { sellerId: userId }
+        : role === roles.CLIENT
+          ? { buyerId: userId }
+          : {};
 
-    if (role === roles.CLIENT) {
-      const bookings = await Booking_model.find({ buyerId: userId });
-      if (!bookings.length) {
-        return res
-          .status(404)
-          .json({ status: "failed", message: "No bookings found" });
-      }
-      return res.status(200).json({ status: "success", data: { bookings } });
-    }
+    const [bookings, totalBookings] = await Promise.all([
+      Booking_model.find(filter).skip(skip).limit(limit).lean(),
+      Booking_model.countDocuments(filter),
+    ]);
+
+    return res.status(200).json({
+      status: "success",
+      results: bookings.length,
+
+      totalBookings,
+
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalBookings / limit),
+        limit,
+      },
+
+      data: bookings,
+    });
   } catch (err) {
     res.status(500).json({
       status: "error",
