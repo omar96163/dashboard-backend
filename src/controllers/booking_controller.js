@@ -183,8 +183,7 @@ export const deleteBooking = async (req, res) => {
     if (booking.buyerId.toString() !== userId) {
       return res.status(403).json({
         status: "failed",
-        message:
-          "غير مسموح لك بحذف هذا الحجز",
+        message: "غير مسموح لك بحذف هذا الحجز",
       });
     }
 
