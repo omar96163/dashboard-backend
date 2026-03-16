@@ -8,14 +8,26 @@ const bookingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    buyerEmail: {
+      type: String,
+      required: true,
+    },
     sellerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+    sellerEmail: {
+      type: String,
+      required: true,
+    },
     serviceId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Service",
+      required: true,
+    },
+    bookedServiceTitle: {
+      type: String,
       required: true,
     },
     bookingPrice: {

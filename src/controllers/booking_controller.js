@@ -11,13 +11,15 @@ export const createBooking = async (req, res) => {
 
   try {
     const buyerId = req.current_user.id;
+    const buyerEmail = req.current_user.email;
     const { serviceId, bookingPrice, bookingDate, notes } = req.body;
 
     const service = await Service_model.findById(serviceId);
     if (!service || !service.isActive) {
-      return res
-        .status(404)
-        .json({ status: "failed", message: "هذه الخدمة غير موجودة أو غير نشطة" });
+      return res.status(404).json({
+        status: "failed",
+        message: "هذه الخدمة غير موجودة أو غير نشطة",
+      });
     }
 
     const existing = await Booking_model.findOne({
@@ -31,10 +33,16 @@ export const createBooking = async (req, res) => {
       });
     }
 
+    const sellerEmail = service.sellerEmail;
+    const bookedServiceTitle = service.title;
+
     const booking = new Booking_model({
       buyerId,
+      buyerEmail,
       sellerId: service.sellerId,
+      sellerEmail,
       serviceId,
+      bookedServiceTitle,
       bookingPrice,
       bookingDate,
       notes,
