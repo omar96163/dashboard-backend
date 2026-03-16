@@ -8,6 +8,10 @@ const ServiceSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    sellerEmail: {
+      type: String,
+      required: true,
+    },
     title: {
       type: String,
       trim: true,

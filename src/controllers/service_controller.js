@@ -10,9 +10,11 @@ export const createService = async (req, res) => {
 
   try {
     const sellerId = req.current_user.id;
+    const sellerEmail = req.current_user.email;
     const { title, description, duration, price } = req.body;
     const service = new Service_model({
       sellerId,
+      sellerEmail,
       title,
       description,
       duration,

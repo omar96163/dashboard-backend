@@ -17,7 +17,7 @@ export const createBooking = async (req, res) => {
     if (!service || !service.isActive) {
       return res
         .status(404)
-        .json({ status: "failed", message: "Service not found or inactive." });
+        .json({ status: "failed", message: "هذه الخدمة غير موجودة أو غير نشطة" });
     }
 
     const existing = await Booking_model.findOne({
@@ -27,7 +27,7 @@ export const createBooking = async (req, res) => {
     if (existing) {
       return res.status(400).json({
         status: "failed",
-        message: "Service already booked for that date.",
+        message: "هذه الخدمة محجوزة في هذا التاريخ",
       });
     }
 
@@ -44,7 +44,7 @@ export const createBooking = async (req, res) => {
 
     res.status(201).json({
       status: "success",
-      message: "Booking created successfully.",
+      message: "تم حجز الخدمة بنجاح",
       data: { booking },
     });
   } catch (err) {
