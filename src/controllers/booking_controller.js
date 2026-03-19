@@ -156,24 +156,35 @@ export const updateBooking = async (req, res) => {
         .status(404)
         .json({ status: "failed", message: "هذا الحجز غير موجود" });
 
-    if (
-      booking.buyerId.toString() !== userId ||
-      booking.sellerId.toString() !== userId
-    ) {
-      return res.status(403).json({
-        status: "failed",
-        message: "غير مسموح لك بتعديل هذا الحجز",
-      });
+    const { bookingPrice, bookingDate, notes, status } = req.body;
+
+    if (userRole === roles.CLIENT) {
+      if (booking.buyerId.toString() !== userId) {
+        return res.status(403).json({
+          status: "failed",
+          message: "غير مسموح لك بتعديل هذا الحجز",
+        });
+      }
+      booking.bookingPrice = bookingPrice || booking.bookingPrice;
+      booking.bookingDate = bookingDate || booking.bookingDate;
+      booking.notes = notes || booking.notes;
+    } else if (userRole === roles.FREELANCER) {
+      if (booking.sellerId.toString() !== userId) {
+        return res.status(403).json({
+          status: "failed",
+          message: "غير مسموح لك بتعديل هذا الحجز",
+        });
+      }
+      booking.status = status || booking.status;
     }
 
-    const { bookingPrice, bookingDate, notes, status } = req.body;
-    booking.bookingPrice = bookingPrice || booking.bookingPrice;
-    booking.bookingDate = bookingDate || booking.bookingDate;
-    booking.status = status || booking.status;
-    booking.notes = notes || booking.notes;
     await booking.save();
 
-    res.status(200).json({ status: "success", data: { booking } });
+    res.status(201).json({
+      status: "success",
+      message: "تم تعديل الحجز بنجاح",
+      data: booking,
+    });
   } catch (err) {
     res.status(500).json({
       status: "error",
