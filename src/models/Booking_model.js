@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { body } from "express-validator";
+import { status } from "../config/status.js";
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -40,15 +41,20 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "completed", "cancelled"],
-      default: "pending",
+      enum: [
+        status.PENDING,
+        status.CONFIRMED,
+        status.COMPLETED,
+        status.CANCELLED,
+      ],
+      default: status.PENDING,
     },
     notes: {
       type: String,
       trim: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Booking_model = mongoose.model("Booking", bookingSchema);
@@ -73,15 +79,21 @@ export const validation_Booking_Schema = (isCreating = false) => {
       .optional()
       .isLength({ max: 500 })
       .withMessage("الملاحظات يجب أن لا تتجاوز 500 حرف"),
+    body("status")
+      .optional()
+      .isIn(Object.values(status))
+      .withMessage(
+        `الحالة يجب أن تكون واحدة من: ${Object.values(status).join(", ")}`,
+      ),
   ];
 
   if (isCreating) {
     validations.push(
       body("serviceId")
         .notEmpty()
-        .withMessage("Service ID is required")
+        .withMessage("ال ID الخاص بالخدمة مطلوب")
         .isMongoId()
-        .withMessage("Invalid service ID")
+        .withMessage("ال ID الخاص بالخدمة غير صحيح"),
     );
   }
 

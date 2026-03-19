@@ -20,16 +20,16 @@ bookingRouter
     verify_token,
     allowed_to(roles.CLIENT),
     validation_Booking_Schema(true),
-    createBooking
+    createBooking,
   );
 
 bookingRouter
   .route("/:id")
   .patch(
     verify_token,
-    allowed_to(roles.CLIENT),
+    allowed_to(roles.CLIENT, roles.FREELANCER),
     validation_Booking_Schema(false),
-    updateBooking
+    updateBooking,
   )
   .get(verify_token, getBookingById)
   .delete(verify_token, allowed_to(roles.CLIENT), deleteBooking);
