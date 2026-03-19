@@ -58,21 +58,21 @@ export const validation_Booking_Schema = (isCreating = false) => {
     body("bookingPrice")
       .optional()
       .isFloat({ min: 50 })
-      .withMessage("Price must be at least 50$."),
+      .withMessage("السعر يجب أن لا يقل عن 50 $"),
     body("bookingDate")
       .optional()
       .isISO8601()
-      .withMessage("Invalid date format.")
+      .withMessage("التاريخ غير صحيح")
       .custom((value) => {
         if (new Date(value) < new Date()) {
-          throw new Error("Booking date cannot be in the past.");
+          throw new Error("تاريخ الحجز يجب أن يكون في المستقبل");
         }
         return true;
       }),
     body("notes")
       .optional()
       .isLength({ max: 500 })
-      .withMessage("Notes cannot exceed 500 characters."),
+      .withMessage("الملاحظات يجب أن لا تتجاوز 500 حرف"),
   ];
 
   if (isCreating) {
