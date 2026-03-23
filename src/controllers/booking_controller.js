@@ -1,8 +1,8 @@
 import { roles } from "../config/roles.js";
-import { status } from "../config/status.js";
 import { validationResult } from "express-validator";
 import { Booking_model } from "../models/Booking_model.js";
 import { Service_model } from "../models/Service_model.js";
+import { BOOKING_STATUS, BOOKING_STATUS_LABELS } from "../config/status.js";
 
 export const createBooking = async (req, res) => {
   const errors = validationResult(req);
@@ -165,6 +165,12 @@ export const updateBooking = async (req, res) => {
           message: "غير مسموح لك بتعديل هذا الحجز",
         });
       }
+      if (booking.status !== BOOKING_STATUS.PENDING) {
+        return res.status(403).json({
+          status: "failed",
+          message: "لا يمكنك تعديل الحجز بعد تأكيده",
+        });
+      }
       booking.bookingPrice = bookingPrice || booking.bookingPrice;
       booking.bookingDate = bookingDate || booking.bookingDate;
       booking.notes = notes || booking.notes;
@@ -175,7 +181,7 @@ export const updateBooking = async (req, res) => {
           message: "غير مسموح لك بتعديل هذا الحجز",
         });
       }
-      booking.status = status || booking.status;
+      booking.status = BOOKING_STATUS_LABELS[status] || booking.status;
     }
 
     await booking.save();

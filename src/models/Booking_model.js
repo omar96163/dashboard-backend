@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { body } from "express-validator";
-import { status } from "../config/status.js";
+import { BOOKING_STATUS } from "../config/status.js";
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -42,12 +42,12 @@ const bookingSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        status.PENDING,
-        status.CONFIRMED,
-        status.COMPLETED,
-        status.CANCELLED,
+        BOOKING_STATUS.PENDING,
+        BOOKING_STATUS.CONFIRMED,
+        BOOKING_STATUS.COMPLETED,
+        BOOKING_STATUS.CANCELLED,
       ],
-      default: status.PENDING,
+      default: BOOKING_STATUS.PENDING,
     },
     notes: {
       type: String,
@@ -81,9 +81,9 @@ export const validation_Booking_Schema = (isCreating = false) => {
       .withMessage("الملاحظات يجب أن لا تتجاوز 500 حرف"),
     body("status")
       .optional()
-      .isIn(Object.values(status))
+      .isIn(Object.values(BOOKING_STATUS))
       .withMessage(
-        `الحالة يجب أن تكون واحدة من: ${Object.values(status).join(", ")}`,
+        `الحالة يجب أن تكون واحدة من: ${Object.values(BOOKING_STATUS).join(", ")}`,
       ),
   ];
 
