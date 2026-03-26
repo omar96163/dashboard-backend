@@ -218,7 +218,10 @@ export const deleteBooking = async (req, res) => {
     }
 
     await Booking_model.findByIdAndDelete(bookingId);
-    res.json({ status: "success", message: "تم حذف الحجز بنجاح" });
+    res.json({
+      status: "success",
+      message: "تم حذف الحجز بنجاح",
+    });
   } catch (err) {
     res.status(500).json({
       status: "error",
