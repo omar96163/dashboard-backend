@@ -91,19 +91,19 @@ export const getAllBookings = async (req, res) => {
       Booking_model.countDocuments(filter),
       Booking_model.countDocuments({
         ...filter,
-        status: BOOKING_STATUS.PENDING,
+        status: BOOKING_STATUS_LABELS[BOOKING_STATUS.PENDING],
       }),
       Booking_model.countDocuments({
         ...filter,
-        status: BOOKING_STATUS.CONFIRMED,
+        status: BOOKING_STATUS_LABELS[BOOKING_STATUS.CONFIRMED],
       }),
       Booking_model.countDocuments({
         ...filter,
-        status: BOOKING_STATUS.COMPLETED,
+        status: BOOKING_STATUS_LABELS[BOOKING_STATUS.COMPLETED],
       }),
       Booking_model.countDocuments({
         ...filter,
-        status: BOOKING_STATUS.CANCELLED,
+        status: BOOKING_STATUS_LABELS[BOOKING_STATUS.CANCELLED],
       }),
     ]);
 
