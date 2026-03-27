@@ -79,9 +79,32 @@ export const getAllBookings = async (req, res) => {
           ? { buyerId: userId }
           : {};
 
-    const [bookings, totalBookings] = await Promise.all([
+    const [
+      bookings,
+      totalBookings,
+      pendingBookings,
+      confirmedBookings,
+      completedBookings,
+      cancelledBookings,
+    ] = await Promise.all([
       Booking_model.find(filter).skip(skip).limit(limit).lean(),
       Booking_model.countDocuments(filter),
+      Booking_model.countDocuments({
+        ...filter,
+        status: BOOKING_STATUS.PENDING,
+      }),
+      Booking_model.countDocuments({
+        ...filter,
+        status: BOOKING_STATUS.CONFIRMED,
+      }),
+      Booking_model.countDocuments({
+        ...filter,
+        status: BOOKING_STATUS.COMPLETED,
+      }),
+      Booking_model.countDocuments({
+        ...filter,
+        status: BOOKING_STATUS.CANCELLED,
+      }),
     ]);
 
     return res.status(200).json({
@@ -89,6 +112,10 @@ export const getAllBookings = async (req, res) => {
       results: bookings.length,
 
       totalBookings,
+      pendingBookings,
+      confirmedBookings,
+      completedBookings,
+      cancelledBookings,
 
       pagination: {
         currentPage: page,
