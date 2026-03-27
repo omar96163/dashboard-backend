@@ -90,19 +90,19 @@ export const getAllBookings = async (req, res) => {
       Booking_model.find(filter).skip(skip).limit(limit).lean(),
       Booking_model.countDocuments(filter),
       Booking_model.countDocuments({
-        filter,
+        ...filter,
         status: BOOKING_STATUS.PENDING,
       }),
       Booking_model.countDocuments({
-        filter,
+        ...filter,
         status: BOOKING_STATUS.CONFIRMED,
       }),
       Booking_model.countDocuments({
-        filter,
+        ...filter,
         status: BOOKING_STATUS.COMPLETED,
       }),
       Booking_model.countDocuments({
-        filter,
+        ...filter,
         status: BOOKING_STATUS.CANCELLED,
       }),
     ]);
